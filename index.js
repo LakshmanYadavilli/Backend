@@ -11,11 +11,11 @@ const configurePassport = require("./config/passport");
 configurePassport(passport);
 mongoose.connect("mongodb://localhost:27017/customers");
 app.use(express.json());
-app.use(cookieParser());
+app.use(cookieParser("secret"));
 app.use(
   cors({
     origin: "http://localhost:5173",
-    allowedHeaders: "Origin,X-Requested-With,Content-Type,Accept",
+    allowedHeaders: "Origin,X-Requested-With,Content-Type,Accept,Authorization",
     credentials: true,
   })
 );

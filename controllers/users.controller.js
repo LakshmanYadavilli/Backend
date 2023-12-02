@@ -13,6 +13,7 @@ const addUser = async (req, res) => {
     console.log({ username: req.body.username, token });
     res.cookie("token", token, {
       maxAge: 1000 * 60 * 60,
+      signed: true,
       httpOnly: true,
     });
     res.json({ status: true });
@@ -23,7 +24,7 @@ const addUser = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const result = await UserInstance.getAll();
-    console.log({ username: req.params.username, token });
+    // console.log("gell All Users", result);
     // localStorage.setItem("token", token);
     // console.log({ localStorage: localStorage.getItem("token") });
 
@@ -46,25 +47,26 @@ const updateUserById = (req, res) => {
 };
 
 const getToken = (req, res) => {
-  const token = req.signedCookies.token;
+  const token = req.signedCookies;
   console.log({ token });
-  res.send({ token });
+  res.json(token);
 };
 
 const verifyUser = async (req, res) => {
   try {
     const result = await UserInstance.verifyUser(req.body);
+    const token = await UserInstance.generateJwtToken(req.body.username);
     // console.log("VerifyUser");
-    // console.log("VerifyUser", result);
-    const token = UserInstance.generateJwtToken(req.body.username);
-    res.cookie("token", token, {
-      maxAge: 1000 * 60 * 60,
-      httpOnly: true,
-    });
+    // console.log("VerifyUser", result, req.signedCookies.token);
 
     switch (result) {
       case true: {
-        return res.json({ verified: true });
+        res.cookie("token", token, {
+          signed: true,
+          httpOnly: true,
+          maxAge: 1000 * 60 * 60,
+        });
+        return res.json({ verified: true, token: req.signedCookies });
       }
       case false: {
         return res.status(403).json({ message: "Password Incorrect" });
@@ -80,17 +82,32 @@ const verifyUser = async (req, res) => {
       }
     }
   } catch (e) {
-    res.sendStatus(500);
+    res.status(500).json({ e: e.message });
   }
 };
 
 const clearToken = async (req, res) => {
-  const cookie = req.cookies.token;
-  res.json({ cookie });
+  // const cookie = req.cookies.token;
+  // res.json({ cookie });
 
-  // res
-  //   .clearCookie("token", { httpOnly: true })
-  //   .json({ message: "Token Cookie Cleared" });
+  res.cookie("token", "", {
+    httpOnly: true,
+    signed: true,
+    maxAge: 0,
+  });
+  res.json({ cookies: req.signedCookies });
+};
+
+const setToken = async (req, res) => {
+  const token = UserInstance.generateJwtToken(req.body.username);
+  res.cookie("token", token, {
+    maxAge: 1000 * 60 * 60,
+    httpOnly: true,
+    signed: true,
+  });
+  // console.log(res.signedCookies.token);
+
+  res.json({ message: "token Set" });
 };
 
 module.exports = {
@@ -101,4 +118,5 @@ module.exports = {
   verifyUser,
   getToken,
   clearToken,
+  setToken,
 };

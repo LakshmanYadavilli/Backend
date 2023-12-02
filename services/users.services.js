@@ -45,7 +45,7 @@ class Users {
     console.log({ data });
     const result = await usersModel.findOne({ username });
     console.log("YVL");
-    console.log("Verify User Service");
+    console.log("Verify User Service", result);
     if (result) {
       const check = bcrypt.compare(password, result.password);
       return check;

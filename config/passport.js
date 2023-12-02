@@ -10,6 +10,7 @@ const options = {
 };
 
 const strategy = new JWTStrategy(options, async (payload, done) => {
+  console.log("Passport");
   console.log({ payload });
   done(null, true);
 });
